@@ -4,20 +4,21 @@
  */
 import { type Block, detect, LABEL_HELP, LABEL_JA, LABEL_MARK, type Label, type Sentence } from "../core/detect.ts";
 import { extractBlocks } from "../core/extract.ts";
-import { NO_QUOTE_MEANING, otherAudience, type Profile, TOPICS, topicStatus, WEB_EXCEPTION } from "../core/topics.ts";
-import { SAMPLE_BLOCKS, SAMPLE_TITLE } from "../core/sample.ts";
+import { guessKind, headingsOf, type Kind, markAmounts, NO_QUOTE_MEANING, otherAudience, type Profile, topicsFor, topicStatus, WEB_EXCEPTION } from "../core/topics.ts";
+import { SAMPLE_BLOCKS, SAMPLE_TITLE, SCHOLARSHIP_BLOCKS, SCHOLARSHIP_TITLE } from "../core/sample.ts";
+import { pickWatchouts } from "../core/watchouts.ts";
 import { NO_QUOTE, REVIEW } from "../core/adjudicate.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const PRIORITY: Label[] = ["conflict", "prohibited", "deadline", "required", "quantity"];
-const PROFILE_KEY = "tadashigaki-profile";
+const PROFILE_KEY = "skimlight-profile";
 
-interface State { title: string; source: string; blocks: Block[]; ss: Sentence[] }
+interface State { title: string; source: string; blocks: Block[]; ss: Sentence[]; kind: Kind }
 let state: State | null = null;
 
 // --- 計測（docs/perf-log.md の3つ） ---------------------------------------------------------------
 const perf = { fcp: 0, transfer: 0, markerMs: 0, markerPlannedMs: 0, markerVisible: 0, sentences: 0 };
-(window as unknown as { __tadashigakiPerf: typeof perf }).__tadashigakiPerf = perf;
+(window as unknown as { __skimlightPerf: typeof perf }).__skimlightPerf = perf;
 try {
   new PerformanceObserver((list) => {
     for (const e of list.getEntries()) if (e.name === "first-contentful-paint") perf.fcp = Math.round(e.startTime);
@@ -32,6 +33,15 @@ addEventListener("load", () => {
 // --- 入力 ------------------------------------------------------------------------------------------
 const msg = (text: string, err = false) => { const m = $("msg"); m.textContent = text; m.classList.toggle("err", err); };
 
+/** 同じサイトの中の転送か（末尾の「/」の有無・www の有無など）。https に限る */
+function sameSite(a: string, b: string): boolean {
+  try {
+    const x = new URL(a), y = new URL(b);
+    const host = (h: string) => h.replace(/^www\./, "");
+    return y.protocol === "https:" && host(x.hostname) === host(y.hostname);
+  } catch { return false; }
+}
+
 async function readUrl(url: string) {
   const go = $<HTMLButtonElement>("go");
   go.disabled = true;
@@ -40,6 +50,19 @@ async function readUrl(url: string) {
     const res = await fetch("/api/page", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
     const data = await res.json();
     if (!data.ok) {
+      if (data.code === "REDIRECT" && data.detail && sameSite(url, data.detail)) {
+        // 同じサイトの中の転送（末尾の「/」など）：転送先を入れ、押せばすぐ読めるボタンを出す（取得は押した時に1回だけ）
+        const next = data.detail as string;
+        $<HTMLInputElement>("url").value = next;
+        msg("同じサイトの別の URL へ転送されました。", true);
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn ghost small";
+        b.textContent = "転送先を読む";
+        b.addEventListener("click", () => readUrl(next));
+        $("msg").append("　", b);
+        return;
+      }
       msg(data.message + (data.detail ? `　転送先：${data.detail}` : ""), true);
       if (data.code === "REDIRECT" && data.detail) $<HTMLInputElement>("url").value = data.detail;
       else if (!["BAD_URL", "NOT_HTTPS", "PRIVATE"].includes(data.code)) offerPaste(url); // 公開ページで取れなかった時だけ
@@ -50,6 +73,7 @@ async function readUrl(url: string) {
     showPdfHint(ex.pdfLinks);
     if (ex.blocks.length < 3) {
       msg("本文がほとんど取れませんでした。画面で文字を描くページかもしれません。ブックマークレットか、文章の貼り付けを使ってください。", true);
+      offerPaste(url);
       return;
     }
     show({ title: ex.title, source: data.url, blocks: ex.blocks });
@@ -110,7 +134,7 @@ async function readPdf(file: File) {
     show({ title: r.title, source: `PDF：${file.name}（${r.pages} ページ・この端末の中だけ）`, blocks: r.blocks });
     msg(r.truncated ? "長い PDF なので、最初の 80 ページまでを読みました。" : "");
   } catch (e) {
-    console.warn("tadashigaki: PDF", e); // 利用者の端末のコンソールだけ（どこへも送らない）
+    console.warn("skimlight: PDF", e); // 利用者の端末のコンソールだけ（どこへも送らない）
     msg(e instanceof Error && e.message.includes("大きすぎ") ? e.message : "PDF を読めませんでした。", true);
   }
 }
@@ -124,16 +148,25 @@ function readPasted(text: string) {
 }
 
 // --- 表示 ------------------------------------------------------------------------------------------
-function show(input: { title: string; source: string; blocks: Block[] }, initial = false) {
+function show(input: { title: string; source: string; blocks: Block[] }, initial = false, kindChosen?: Kind) {
   const t0 = performance.now();
-  $("demo-note").hidden = !initial;
   const ss = detect(input.blocks, todayUtc());
-  state = { ...input, ss };
+  // 要項の種類（論点の組）を本文の語から選ぶ。利用者は右の一覧の上で切り替えられる
+  const kind = kindChosen ?? guessKind(ss);
+  // 奨学金・助成金では、給付額・助成額の文にも数量の印を付ける
+  markAmounts(ss, kind, input.blocks);
+  state = { ...input, ss, kind };
+  $<HTMLSelectElement>("kind").value = kind;
+  // 「1人／チーム」の選択は、コンテストの時だけ出す
+  $("fs-party").hidden = kind !== "contest";
   $("main").hidden = false;
   $("src").textContent = `出典：${input.source}`;
   renderDoc();
   renderSide();
+  renderWatchouts();
+  renderLegend();
   renderTimeline();
+  $("glance").hidden = $("next-dl").hidden && $("watch").hidden;
   applyProfile();
   run(t0, initial);
 }
@@ -243,8 +276,9 @@ function renderSide() {
   const isHeading = (s: Sentence) => blocks[s.block].type.startsWith("h");
   const topics = $("topics");
   topics.textContent = "";
-  for (const t of TOPICS) {
-    const r = topicStatus(t, ss, isHeading);
+  const headingOf = headingsOf(ss, blocks);
+  for (const t of topicsFor(state!.kind)) {
+    const r = topicStatus(t, ss, isHeading, headingOf);
     const li = document.createElement("li");
     const det = document.createElement("details");
     const sum = document.createElement("summary");
@@ -279,6 +313,7 @@ function renderSide() {
     } else {
       const p = document.createElement("p"); p.className = "empty"; p.textContent = "見つかりませんでした"; li.append(p);
     }
+    collapsible(li, h);
     groups.append(li);
   }
   for (const l of ["required", "deadline", "quantity", "prohibited", "conflict"] as Label[]) {
@@ -297,8 +332,19 @@ function renderSide() {
     } else {
       const p = document.createElement("p"); p.className = "empty"; p.textContent = "見つかりませんでした"; li.append(p);
     }
+    collapsible(li, h);
     groups.append(li);
   }
+}
+
+/** 種類ごとの見出しを押すと、その種類の文の一覧が開く（最初は件数だけを見せる） */
+function collapsible(li: HTMLElement, h: HTMLElement) {
+  h.tabIndex = 0;
+  h.setAttribute("role", "button");
+  h.setAttribute("aria-expanded", "false");
+  const toggle = () => { const open = li.classList.toggle("open"); h.setAttribute("aria-expanded", String(open)); };
+  h.addEventListener("click", toggle);
+  h.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
 }
 
 function renderTimeline() {
@@ -313,9 +359,11 @@ function renderTimeline() {
   const list = [...pts.values()].sort((a, b) => (a.iso + (a.time ?? "")).localeCompare(b.iso + (b.time ?? "")));
   const box = $("timeline");
   box.hidden = list.length === 0;
-  if (!list.length) return;
   const ms = (iso: string) => Date.parse(iso + "T00:00:00Z");
   const today = todayUtc().getTime();
+  renderNextDeadline(list.filter((p) => p.kind !== "date" && ms(p.iso) >= today)[0], today);
+  if (!list.length) return;
+  $("tl-sum").textContent = `日付をすべて見る（${list.length}件）`;
   const lo = Math.min(today, ms(list[0].iso));
   const hi = Math.max(today, ms(list[list.length - 1].iso));
   const span = Math.max(hi - lo, 86_400_000);
@@ -352,6 +400,85 @@ function renderTimeline() {
     li.textContent = `${p.kind === "deadline" ? "締" : p.kind === "conflict" ? "違" : "・"} ${p.iso}${p.time ? " " + p.time : ""}（${when}）${p.label}`;
     ul.append(li);
   }
+}
+
+/** 凡例に件数を出し、押すとその種類の文へ順に飛ぶ（最後まで行ったら最初へ戻る） */
+const legendAt = new Map<string, number>();
+function renderLegend() {
+  const { ss, blocks } = state!;
+  const exc = new RegExp(WEB_EXCEPTION.source, "u");
+  const of = (l: string) => ss.filter((s) => !blocks[s.block].type.startsWith("h") && (l === "proviso" ? exc.test(s.text) : s.labels.includes(l as Label)));
+  legendAt.clear();
+  const doc = $("doc");
+  const quiet: string[] = [];
+  for (const b of document.querySelectorAll<HTMLButtonElement>("#legend button[data-l]")) {
+    const hit = of(b.dataset.l!);
+    // 15件以上ある種類は、塗りをやめて下線と記号だけで示す（隠さない・間引かない）。凡例を押すとその種類だけ塗る
+    const many = b.dataset.l !== "proviso" && b.dataset.l !== "conflict" && hit.length >= QUIET_AT;
+    doc.classList.toggle(`quiet-${b.dataset.l}`, many);
+    doc.classList.remove(`focus-${b.dataset.l}`);
+    if (many) quiet.push(LABEL_JA[b.dataset.l as Label]);
+    b.querySelector(".n")!.textContent = String(hit.length);
+    b.disabled = hit.length === 0;
+    b.setAttribute("aria-label", `${b.textContent?.replace(/\d+$/, "")} ${hit.length}件。押すと次の文へ飛びます`);
+    b.onclick = () => {
+      for (const x of document.querySelectorAll("#legend button[data-l]")) doc.classList.remove(`focus-${(x as HTMLElement).dataset.l}`);
+      doc.classList.add(`focus-${b.dataset.l}`);
+      const i = legendAt.get(b.dataset.l!) ?? 0;
+      jump(hit[i % hit.length].id);
+      legendAt.set(b.dataset.l!, i + 1);
+    };
+  }
+  const note = $("quiet-note");
+  note.hidden = quiet.length === 0;
+  note.textContent = quiet.length ? `${quiet.join("・")}は数が多いので、下線と記号だけで示しています（凡例を押すと塗ります）。` : "";
+}
+const QUIET_AT = 15;
+
+/** 本文の上に「見落としやすい文」を3つまで出す（食い違い・ただし書き）。押すと原文のその場所へ飛ぶ */
+function renderWatchouts() {
+  const { ss, blocks } = state!;
+  const list = pickWatchouts(ss, (s) => blocks[s.block].type.startsWith("h"));
+  const box = $("watch");
+  const ol = $("watch-list");
+  ol.textContent = "";
+  box.hidden = list.length === 0;
+  for (const w of list) {
+    const li = document.createElement("li");
+    const tag = document.createElement("span");
+    tag.className = w.reason === "食い違い" ? "watch-tag is-conflict" : "watch-tag is-proviso";
+    tag.textContent = w.reason;
+    const b = document.createElement("button");
+    b.type = "button";
+    const text = w.text.replace(/\s+/g, " ");
+    appendWithProviso(b, text.length > 90 ? text.slice(0, 89) + "…" : text);
+    b.addEventListener("click", () => jump(w.sid));
+    li.append(tag, b);
+    ol.append(li);
+  }
+}
+
+/** 本文の上に「次の締切」を1行で出す（時間軸は畳んであるので、いちばん要る1つだけを先に見せる） */
+function renderNextDeadline(p: { iso: string; time?: string; label: string; sid: number } | undefined, today: number) {
+  const el = $("next-dl");
+  el.textContent = "";
+  el.hidden = !p;
+  if (!p) return;
+  const d = new Date(p.iso + "T00:00:00Z");
+  const wd = "日月火水木金土"[d.getUTCDay()];
+  const days = Math.round((d.getTime() - today) / 86_400_000);
+  const head = document.createElement("span");
+  head.className = "next-dl-head";
+  head.textContent = "次の締切";
+  const when = document.createElement("strong");
+  when.textContent = `${d.getUTCMonth() + 1}/${d.getUTCDate()}（${wd}）${p.time ? " " + p.time : ""}`;
+  const left = document.createElement("span");
+  left.textContent = days === 0 ? "今日" : `あと${days}日`;
+  const go = document.createElement("button");
+  go.type = "button";
+  go.textContent = "原文へ";
+  go.addEventListener("click", () => jump(p.sid));
+  el.append(head, when, left, go);
 }
 
 // --- 印を押すと意味が出る（凡例を印そのものに持たせる） ----------------------------------------------
@@ -406,9 +533,11 @@ function applyProfile() {
   if (!state) return;
   const p = readProfile();
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch { /* 保存できなくても動く */ }
+  // 「1人／チーム」はコンテストの時だけ使う（奨学金・助成金では選択が隠れている）
+  const used: Profile = state.kind === "contest" ? p : { ...p, party: undefined };
   let dimmed = 0;
   for (const s of state.ss) {
-    const off = otherAudience(s, p);
+    const off = otherAudience(s, used);
     if (off && s.labels.length) dimmed += 1;
     document.querySelectorAll<HTMLElement>(`[data-sid="${s.id}"]`).forEach((el) => el.classList.toggle("dim", off));
   }
@@ -434,7 +563,7 @@ function run(t0: number, initial = false) {
   void main.offsetWidth; // 走り直すために一度だけ
   main.classList.add("running");
   // 読み込んだら時間軸（無ければ本文）の頭まで送る
-  if (!initial) ($("timeline").hidden ? $("paper") : $("timeline")).scrollIntoView({ block: "start" });
+  if (!initial) ($("next-dl").hidden ? $("paper") : $("next-dl")).scrollIntoView({ block: "start" });
   const marks = [...document.querySelectorAll<HTMLElement>("#doc mark")];
   const step = Math.min(60, 2000 / n);
   perf.markerPlannedMs = Math.round(Math.max(marks.length - 1, 0) * step + 500);
@@ -449,7 +578,7 @@ function run(t0: number, initial = false) {
   last.addEventListener("animationend", () => {
     perf.markerMs = Math.round(performance.now() - t0);
     perf.markerVisible = visible.length;
-    performance.mark("tadashigaki:marker-done");
+    performance.mark("skimlight:marker-done");
   }, { once: true });
 }
 
@@ -495,18 +624,18 @@ function fromBookmarklet() {
     const d = e.data as { type?: string; url?: unknown; title?: unknown; blocks?: unknown; text?: unknown };
     const src = typeof d?.url === "string" && /^https?:\/\//.test(d.url) ? d.url.slice(0, 2048) : "要項のページ";
     const title = typeof d?.title === "string" ? d.title.slice(0, 200) : "";
-    if (d?.type === "tadashigaki/blocks" && Array.isArray(d.blocks)) {
+    if (d?.type === "skimlight/blocks" && Array.isArray(d.blocks)) {
       const blocks = (d.blocks as Array<{ type?: unknown; text?: unknown }>).slice(0, 3000)
         .filter((b) => typeof b?.text === "string" && BLOCK_TYPES.has(String(b.type)))
         .map((b) => ({ type: b.type, text: (b.text as string).slice(0, 10_000) }) as Block);
       if (blocks.length) { show({ title, source: src, blocks }); msg(""); }
-    } else if (d?.type === "tadashigaki/text" && typeof d.text === "string") {
+    } else if (d?.type === "skimlight/text" && typeof d.text === "string") {
       readPasted(d.text.slice(0, 200_000));
       $("src").textContent = `出典：${src}（ページの上で読んだ文字）`;
     }
   });
   // 準備できたことだけを知らせる（中身は何も送らない）
-  window.opener.postMessage({ type: "tadashigaki/ready" }, "*");
+  window.opener.postMessage({ type: "skimlight/ready" }, "*");
 }
 fromBookmarklet();
 
@@ -523,10 +652,33 @@ if (location.hash !== "#bm") {
   requestAnimationFrame(() => setTimeout(demo, 0));
   setTimeout(demo, 250);
 }
+// 論点の組を切り替える（判定ではなく、どの論点の一覧を出すかを選ぶだけ）
+$<HTMLSelectElement>("kind").addEventListener("change", (e) => {
+  if (!state) return;
+  // 種類で金額の印が変わるので、選んだ種類で組み立て直す（マーカーはもう一度走る）
+  const { title, source, blocks } = state;
+  show({ title, source, blocks }, true, (e.target as HTMLSelectElement).value as Kind);
+});
+// 見本の切り替え：奨学金の見本（架空・通信なし）
+$("sample-sch").addEventListener("click", () => {
+  show({ title: SCHOLARSHIP_TITLE, source: "見本（架空の奨学金の要項・この端末の中だけ）", blocks: SCHOLARSHIP_BLOCKS });
+});
 $("profile").addEventListener("reset", () => setTimeout(() => {
   applyProfile();
   try { localStorage.removeItem(PROFILE_KEY); } catch { /* 無くても動く */ }
 }, 0));
 restoreProfile();
 // 立場の選択は、広い画面では開いておく（スマホでは畳んで本文を先に見せる）
-if (matchMedia("(min-width: 700px)").matches) ($("profile-box") as HTMLDetailsElement).open = true;
+// スマホ（一覧が本文の下に来る幅）：右下のボタンで一覧と本文を行き来する
+{
+  const btn = $<HTMLButtonElement>("to-side");
+  const narrow = matchMedia("(max-width: 900px)");
+  let sideInView = false;
+  const sync = () => { btn.hidden = !narrow.matches || $("main").hidden; btn.textContent = sideInView ? "本文へ" : "一覧へ"; };
+  new IntersectionObserver((es) => { sideInView = es.some((e) => e.isIntersecting); sync(); }, { rootMargin: "0px 0px -40% 0px" }).observe($("side"));
+  new MutationObserver(sync).observe($("main"), { attributes: true, attributeFilter: ["hidden"] });
+  narrow.addEventListener("change", sync);
+  btn.addEventListener("click", () => (sideInView ? $("paper") : $("side")).scrollIntoView({ block: "start" }));
+  sync();
+}
+// 立場で絞る欄は閉じて始める（本文と論点の一覧を最初の画面に入れるため）

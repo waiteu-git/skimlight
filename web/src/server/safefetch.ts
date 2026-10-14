@@ -10,7 +10,7 @@ import { BlockList, isIP } from "node:net";
 
 export const MAX_BYTES = 1024 * 1024;
 const TIMEOUT_MS = 10_000;
-const UA = "tadashigaki/0.1 (reads one public page on the user's request; GET only)";
+const UA = "skimlight/0.1 (reads one public page on the user's request; GET only)";
 
 // 共用の内部アドレス帯（RFC 6598）。手元の pre-commit ガードが tailnet の IP の書式として止めるので、数字から組み立てる
 const CGNAT = [100, 64, 0, 0].join(".");

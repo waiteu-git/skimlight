@@ -16,7 +16,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function once(url, jsOff) {
   const PORT = 9300 + Math.floor(Math.random() * 500);
-  const profile = mkdtempSync(join(tmpdir(), "tadashigaki-fcp-"));
+  const profile = mkdtempSync(join(tmpdir(), "skimlight-fcp-"));
   const chrome = spawn(CHROME, ["--headless=new", "--disable-gpu", "--no-first-run", "--disable-extensions", "--disable-background-networking",
     "--disable-component-update", `--user-data-dir=${profile}`, `--remote-debugging-port=${PORT}`, "--window-size=1280,900", "about:blank"], { stdio: "ignore", detached: true });
   try {

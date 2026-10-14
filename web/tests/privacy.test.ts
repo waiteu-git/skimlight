@@ -66,12 +66,12 @@ test("ブックマークレットの受け渡しは宛先の origin を固定す
   assert.match(overlay, /win\.postMessage\(payload, ORIGIN\)/);
   assert.match(overlay, /e\.origin !== ORIGIN/);
   const loader = src("bookmarklet/loader.ts");
-  assert.match(loader, /w\.postMessage\(\{type:'tadashigaki\/text'.*?\},o\)/);
+  assert.match(loader, /w\.postMessage\(\{type:'skimlight\/text'.*?\},o\)/);
   assert.match(loader, /e\.origin===o&&e\.source===w/);
   // 読み取りビュー側：開いた窓からだけ受け、「準備できた」には中身を載せない
   const app = src("client/app.ts");
   assert.match(app, /if \(e\.source !== window\.opener\) return;/);
-  assert.match(app, /window\.opener\.postMessage\(\{ type: "tadashigaki\/ready" \}, "\*"\)/);
+  assert.match(app, /window\.opener\.postMessage\(\{ type: "skimlight\/ready" \}, "\*"\)/);
 });
 
 test("立場の選択は端末の localStorage だけ。選び直すと消える", () => {

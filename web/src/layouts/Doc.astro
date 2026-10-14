@@ -9,14 +9,14 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}｜タダシガキ</title>
+    <title>{title}｜Skimlight</title>
     <meta name="description" content={description} />
     <meta name="color-scheme" content="light dark" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='12' width='24' height='9' rx='2' fill='%2356b4e9'/%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 19.5 C 9 16.5, 20 14, 28 11.5 L 29.5 17 C 21 19.5, 10 22, 5.5 24.5 Z' fill='%2356b4e9' opacity='.9'/%3E%3Cpath d='M7 21.5 C 13 19.5, 20 17.5, 26 15.5' stroke='%231d1d1f' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E" />
   </head>
   <body>
     <main class="wrap legal">
-      <p class="back"><a href="/">← タダシガキへ戻る</a></p>
+      <p class="back"><a href="/">← Skimlightへ戻る</a></p>
       <article class="paper">
         {!EFFECTIVE_DATE && <p class="draft" role="note">公開前の版です。施行日は公開の日に入ります。</p>}
         <slot />

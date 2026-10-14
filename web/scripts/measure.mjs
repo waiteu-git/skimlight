@@ -87,18 +87,18 @@ try {
   }
   let marker = null;
   // 初めて開いた時の見本（通信なし）のマーカー完走
-  const initial = await evaluate(`(async () => { for (let i = 0; i < 100 && !window.__tadashigakiPerf?.markerMs; i++) await new Promise(r => setTimeout(r, 50));
-    const p = window.__tadashigakiPerf; const doc = document.getElementById('doc'); const top = doc ? Math.round(doc.getBoundingClientRect().top) : null;
+  const initial = await evaluate(`(async () => { for (let i = 0; i < 100 && !window.__skimlightPerf?.markerMs; i++) await new Promise(r => setTimeout(r, 50));
+    const p = window.__skimlightPerf; const doc = document.getElementById('doc'); const top = doc ? Math.round(doc.getBoundingClientRect().top) : null;
     return { markerMs: p?.markerMs, visibleMarks: p?.markerVisible, docTop: top, viewport: innerHeight }; })()`);
   if (mode !== "none") {
     const text = pasteFile ? readFileSync(pasteFile, "utf-8") : "";
     marker = await evaluate(`(async () => {
-      const done = () => window.__tadashigakiPerf.markerMs;
+      const done = () => window.__skimlightPerf.markerMs;
       ${mode === "sample"
         ? "document.getElementById('sample').click();"
         : `document.getElementById('toggle-paste').click(); document.getElementById('paste-text').value = ${JSON.stringify(text)}; document.getElementById('paste-go').click();`}
       for (let i = 0; i < 300 && !done(); i++) await new Promise(r => setTimeout(r, 50));
-      const p = window.__tadashigakiPerf; return { markerMs: p.markerMs, visibleMarks: p.markerVisible, plannedAllMs: p.markerPlannedMs, marks: document.querySelectorAll('#doc mark').length, step: getComputedStyle(document.documentElement).getPropertyValue('--step') };
+      const p = window.__skimlightPerf; return { markerMs: p.markerMs, visibleMarks: p.markerVisible, plannedAllMs: p.markerPlannedMs, marks: document.querySelectorAll('#doc mark').length, step: getComputedStyle(document.documentElement).getPropertyValue('--step') };
     })()`);
   }
   const out = { url, width, transferWire: finished, files: res.sizes, gzipTotal: gz, fcpMs: res.fcp, initial, marker };

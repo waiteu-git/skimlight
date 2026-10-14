@@ -12,7 +12,7 @@ const ORIGIN = __ORIGIN__;
 const PRIORITY: Label[] = ["conflict", "prohibited", "deadline", "required", "quantity"];
 const COLORS: Record<Label, string> = { required: "#e69f00", deadline: "#56b4e9", quantity: "#009e73", prohibited: "#d55e00", conflict: "#cc79a7" };
 const DECO: Record<Label, string> = { required: "solid", deadline: "double", quantity: "dotted", prohibited: "wavy", conflict: "dashed" };
-const KEY = "__tadashigakiOverlay";
+const KEY = "__skimlightOverlay";
 const LEAF = "h1,h2,h3,h4,h5,h6,p,li,dt,dd,th,td,caption,figcaption,blockquote";
 
 type W = Window & { [KEY]?: { undo: () => void } };
@@ -80,9 +80,9 @@ function openReader() {
   const ex = extractBlocks(document, { live: true });
   const win = window.open(`${ORIGIN}/#bm`, "_blank");
   if (!win) { alert("読み取りビューの窓を開けませんでした（ポップアップを許可してください）"); return; }
-  const payload = { type: "tadashigaki/blocks", url: location.href.split("#")[0], title: ex.title, blocks: ex.blocks };
+  const payload = { type: "skimlight/blocks", url: location.href.split("#")[0], title: ex.title, blocks: ex.blocks };
   const onMsg = (e: MessageEvent) => {
-    if (e.origin !== ORIGIN || e.source !== win || e.data?.type !== "tadashigaki/ready") return;
+    if (e.origin !== ORIGIN || e.source !== win || e.data?.type !== "skimlight/ready") return;
     win.postMessage(payload, ORIGIN);
     removeEventListener("message", onMsg);
   };
@@ -112,9 +112,9 @@ function run() {
   const panel = document.createElement("div");
   panel.id = "ra-panel";
   panel.setAttribute("role", "dialog");
-  panel.setAttribute("aria-label", "タダシガキ");
+  panel.setAttribute("aria-label", "Skimlight");
   const p = document.createElement("p");
-  p.textContent = "タダシガキ：判定はしません。該当しそうな文に色を付けただけです。";
+  p.textContent = "Skimlight：判定はしません。該当しそうな文に色を付けただけです。";
   const ul = document.createElement("ul");
   for (const l of ["required", "deadline", "quantity", "prohibited", "conflict"] as Label[]) {
     const li = document.createElement("li");
@@ -137,4 +137,4 @@ function run() {
   if (!marks.length) p.textContent = "このページでは、マーカーを引く文が見つかりませんでした。読み取りビューで開くと読めることがあります。";
 }
 
-try { run(); } catch (e) { console.error("tadashigaki:", e); openReader(); }
+try { run(); } catch (e) { console.error("skimlight:", e); openReader(); }

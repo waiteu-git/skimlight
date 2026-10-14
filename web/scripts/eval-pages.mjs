@@ -11,10 +11,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const [out, ...targets] = process.argv.slice(2);
-const reader = "http://127.0.0.1:4391/";
+const reader = process.env.READER || "http://127.0.0.1:4391/";
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PORT = 9300 + Math.floor(Math.random() * 500);
-const profile = mkdtempSync(join(tmpdir(), "tadashigaki-eval-"));
+const profile = mkdtempSync(join(tmpdir(), "skimlight-eval-"));
 const chrome = spawn(CHROME, ["--headless=new", "--disable-gpu", "--no-first-run", "--disable-extensions", "--disable-background-networking",
   "--disable-component-update", `--user-data-dir=${profile}`, `--remote-debugging-port=${PORT}`, "--window-size=1280,900", "about:blank"], { stdio: "ignore", detached: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -28,8 +28,12 @@ const collect = `(() => {
     groups[name] = [...li.querySelectorAll('ol button')].map(b => b.textContent);
   }
   const topics = [...document.querySelectorAll('#topics summary')].map(s => s.innerText.replace(/\\n/g, ' '));
-  return { src: document.getElementById('src').textContent, msg: document.getElementById('msg').textContent, groups, topics,
-    pdfLinks: [...document.querySelectorAll('#pdfhint-list a')].map(a => a.textContent + ' ' + a.href) };
+  const kind = document.getElementById('kind')?.value ?? null;
+  const topicTexts = Object.fromEntries([...document.querySelectorAll('#topics details')].map(d => [d.querySelector('summary').innerText.split(/\\n/)[0], [...d.querySelectorAll('button[data-sid]')].map(b => b.textContent.slice(0, 80))]));
+  // 印の付かなかった文も含め、文ごとの控え（ルールを直した時に、他の文へ悪さをしないかを全文で見るため）
+  const sents = [...document.querySelectorAll('#doc [data-sid]')].map(n => { const c = n.cloneNode(true); const l = c.querySelector('.vh')?.textContent ?? ''; c.querySelectorAll('.tag,.vh').forEach(x => x.remove()); return { t: c.textContent, c: n.className, l, b: n.parentElement.tagName.toLowerCase() }; });
+  return { src: document.getElementById('src').textContent, msg: document.getElementById('msg').textContent, groups, topics, kind, topicTexts,
+    sents, pdfLinks: [...document.querySelectorAll('#pdfhint-list a')].map(a => a.textContent + ' ' + a.href) };
 })()`;
 
 const results = [];
@@ -57,7 +61,10 @@ try {
       await evaluate(`document.getElementById('url').value = ${JSON.stringify(url)}; document.getElementById('go').click();`);
     }
     let r = null;
-    for (let i = 0; i < 60; i++) { await sleep(300); if (await evaluate("!document.getElementById('main').hidden || document.getElementById('msg').classList.contains('err')")) { await sleep(400); r = await evaluate(collect); break; } }
+    // 開いた直後は見本が表示されている＝出典が見本でなくなるか、取得の失敗が出るまで待つ（最大30秒）
+    const settled = "(() => { const src = document.getElementById('src').textContent; const msg = document.getElementById('msg'); return (!src.includes('見本') && !document.getElementById('main').hidden) || msg.classList.contains('err'); })()";
+    for (let i = 0; i < 100; i++) { await sleep(300); if (await evaluate(settled)) { await sleep(400); r = await evaluate(collect); break; } }
+    if (r && r.src.includes("見本")) r = { ...r, groups: {}, failed: true };
     results.push({ url, route: js ? "描画後の本文を貼り付け" : "URL", chars: text?.length ?? null, ...r });
     console.log(url, r ? Object.fromEntries(Object.entries(r.groups).map(([k, v]) => [k, v.length])) : "失敗", r?.msg ?? "");
     await sleep(13000); // 取得口の回数制限（1分に5回）と、取りに行く先への負荷を守る

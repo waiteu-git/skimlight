@@ -49,7 +49,9 @@ button, input, textarea { font: inherit; color: inherit; }
 /* --- 上部：URL を貼る ----------------------------------------------------------------------- */
 .top { padding-top: 20px; padding-bottom: 6px; }
 .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.brand h1 { font-size: 20px; margin: 0; letter-spacing: .02em; }
+.brand h1 { font-size: 22px; margin: 0; letter-spacing: .02em; padding: 0 4px;
+  /* ロゴ：名前の下半分に蛍光ペンの一筆（自作の SVG。出所＝このリポで手書きした path） */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M3 7 C 40 4.5, 120 5, 197 3 L 198 15.5 C 130 17, 60 16.5, 2 18.5 Z' fill='%2356b4e9' opacity='.55'/%3E%3C/svg%3E") no-repeat 0 72% / 100% 58%; }
 .brand p { margin: 0; color: var(--ink-2); font-size: 14px; }
 .ask { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .ask input[type=url] {
@@ -59,6 +61,8 @@ button, input, textarea { font: inherit; color: inherit; }
   padding: 11px 16px; border-radius: 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer;
 }
 .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.small { padding: 3px 10px; font-size: 13px; }
+.btn.try { border-color: var(--ink); font-weight: 600; }
 .btn:disabled { opacity: .5; cursor: progress; }
 .sub { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--ink-2); }
 .sub button { background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; color: var(--ink-2); }
@@ -69,16 +73,16 @@ button, input, textarea { font: inherit; color: inherit; }
 .msg.err { color: var(--err); }
 
 /* --- 約束（3つ）と見本の注記 --- */
-.promises { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; font-size: 12.5px; }
-.promises button { padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); background: var(--paper); cursor: pointer; font-size: inherit; }
+.promises { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 10px 0 0; padding: 0; font-size: 12.5px; }
+.promises button { padding: 2px 0; border: 0; color: var(--ink-2); background: none; cursor: pointer; font-size: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
 .promises button::before { content: "✓ "; color: var(--ink); }
-.promises button[aria-expanded="true"] { border-color: var(--ink); color: var(--ink); }
+.promises button[aria-expanded="true"] { color: var(--ink); text-decoration-style: solid; }
 .promise-note { font-size: 12.5px; color: var(--ink-2); margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--line); }
-.demo-note { font-size: 13px; color: var(--ink-2); background: var(--paper); border: 1px dashed var(--ink-3); border-radius: 10px; padding: 6px 12px; margin: 8px 0 0; }
+.demo-note { font-size: 13px; color: var(--ink-2); margin: 10px 0 0; }
 
 /* --- 固定の一文と凡例 ------------------------------------------------------------------------ */
 .notice { font-size: 13px; color: var(--ink-2); border-left: 3px solid var(--line); padding: 2px 10px; margin: 14px 0 0; }
-.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 14px; padding: 0 0 10px; list-style: none; font-size: 12.5px; border-bottom: 1px solid var(--line); }
 .legend li { display: inline-flex; align-items: center; gap: 6px; }
 .legend .legend-tip { color: var(--ink-3); font-size: 12px; }
 .paper { position: relative; }
@@ -106,9 +110,29 @@ button, input, textarea { font: inherit; color: inherit; }
 .profile-box { margin: 8px 0 0; font-size: 14px; }
 .profile-box > summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
 .dimnote { font-size: 13px; color: var(--ink-3); margin: 6px 0 0; min-height: 1.3em; }
+.dimnote:empty { display: none; }
 
 /* --- 時間軸 ---------------------------------------------------------------------------------- */
-.timeline { margin: 8px 0 0; }
+.timeline { margin: 6px 0 0; }
+.timeline > summary { font-size: 13px; color: var(--ink-2); cursor: pointer; width: fit-content; }
+.glance { margin: 12px 0 0; padding: 12px 16px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); display: grid; gap: 10px; }
+.next-dl { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0; padding-left: 10px; border-left: 5px solid var(--c-deadline); font-size: 15px; }
+.next-dl-head { font-size: 12.5px; color: var(--ink-2); }
+.next-dl strong { font-size: 17px; }
+.next-dl button { margin-left: auto; background: none; border: 0; padding: 0; color: var(--ink-2); text-decoration: underline; cursor: pointer; font-size: 13px; }
+/* 見落としやすい文は付箋の見た目（右上の角を折る）。色は必須の黄を薄めた紙の色 */
+.watch { margin: 0; padding: 10px 14px 12px; border-radius: 4px 0 4px 4px; background: color-mix(in srgb, var(--c-required) 16%, var(--paper));
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); position: relative; }
+.watch::after { content: ""; position: absolute; top: 0; right: 0; width: 16px; height: 16px;
+  background: linear-gradient(225deg, var(--paper) 50%, color-mix(in srgb, var(--c-required) 32%, var(--paper)) 50%); }
+.watch h2 { font-size: 13px; color: var(--ink-2); font-weight: 600; margin: 0 0 6px; }
+.watch-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.watch-list li { display: flex; gap: 10px; align-items: baseline; }
+.watch-tag { flex: none; font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--ink-3); color: var(--ink-2); }
+.watch-tag.is-conflict { border-style: dashed; border-color: var(--c-conflict); }
+.watch-list button { text-align: left; background: none; border: 0; padding: 0; color: var(--ink); cursor: pointer; font-size: 14px; line-height: 1.6; }
+.watch-list button:hover { text-decoration: underline; }
+.to-side { position: fixed; right: 16px; bottom: 16px; z-index: 5; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font-weight: 600; box-shadow: 0 2px 10px rgb(0 0 0 / .2); cursor: pointer; }
 .tl-bar { position: relative; height: 56px; margin: 0 8px; }
 .tl-bar::before { content: ""; position: absolute; left: 0; right: 0; top: 26px; height: 2px; background: var(--line); }
 .tl-pt { position: absolute; top: 18px; transform: translateX(-50%); display: grid; justify-items: center; gap: 2px; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -144,7 +168,8 @@ button, input, textarea { font: inherit; color: inherit; }
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
   text-decoration-line: underline; text-decoration-thickness: 2px; text-underline-offset: .22em; text-decoration-color: var(--mc);
   background-image: linear-gradient(color-mix(in srgb, var(--mc) var(--wash), transparent), color-mix(in srgb, var(--mc) var(--wash), transparent));
-  background-repeat: no-repeat; background-size: 100% 100%;
+  /* 蛍光ペンは文字の下半分だけに引く（全面の塗りより文字が読みやすい・10/18 Gemini の批評を採用） */
+  background-repeat: no-repeat; background-position: 0 100%; background-size: 100% 58%;
 }
 .doc mark.m-required { --mc: var(--c-required); text-decoration-style: solid; }
 .doc mark.m-deadline { --mc: var(--c-deadline); text-decoration-style: double; text-decoration-thickness: 3px; }
@@ -153,6 +178,8 @@ button, input, textarea { font: inherit; color: inherit; }
 .doc mark.m-conflict { --mc: var(--c-conflict); text-decoration: none; outline: 2px dashed var(--c-conflict); outline-offset: 1px; }
 .doc mark .tag { font-size: .62em; vertical-align: .55em; margin-left: .15em; font-weight: 700; color: var(--ink-2); }
 .doc mark.flash { box-shadow: 0 0 0 3px var(--accent); }
+/* 印の無い文も、一覧から飛んだ時は光らせる（論点の引用から飛ぶ時） */
+.doc span[data-sid].flash { background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: 0 0 0 3px var(--accent); border-radius: 3px; }
 
 /* ただし書きの語：太字＋点線。マーカーが塗り終わった後に一度だけ跳ねる（transform だけ＝合成だけで済む） */
 .doc b.tg { font-weight: 800; border-bottom: 2px dotted currentColor; display: inline-block; text-indent: 0; }
@@ -161,7 +188,7 @@ button, input, textarea { font: inherit; color: inherit; }
 .doc mark.resweep { animation: sweep .55s cubic-bezier(.2, .7, .2, 1) both !important; animation-delay: 0s !important; }
 @media (prefers-reduced-motion: reduce) { .running .doc b.tg, .doc mark.resweep { animation: none !important; } }
 .running .doc mark { animation: sweep .5s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i) * var(--step)); }
-@keyframes sweep { from { background-size: 0% 100%; text-decoration-color: transparent; } to { background-size: 100% 100%; } }
+@keyframes sweep { from { background-size: 0% 58%; text-decoration-color: transparent; } to { background-size: 100% 58%; } }
 @media (prefers-reduced-motion: reduce) { .running .doc mark { animation: none; } }
 
 /* 一覧 */
@@ -197,15 +224,53 @@ button, input, textarea { font: inherit; color: inherit; }
 /* スマホ：本文（マーカー）を最初の画面に入れる。共通の指定より後に置く */
 @media (max-width: 600px) {
   .sub a#bm-link { display: none; }
-  .hint { font-size: 12px; margin-top: 6px; }
   .brand p { display: none; }
   .legend, .promises { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; scrollbar-width: none; padding-bottom: 2px; }
   .legend::-webkit-scrollbar, .promises::-webkit-scrollbar { display: none; }
   .tl-list { display: none; }
-  .tl-bar { height: 44px; }
+  .tl-bar { height: 56px; }
   .demo-note { font-size: 12px; }
   .paper { padding-top: 16px; }
-  .sample-long { display: none; }
-  .ask { flex-wrap: nowrap; }
-  .ask input[type=url] { flex-basis: 0; }
+  .ask { flex-wrap: wrap; }
+  .ask input[type=url] { flex: 1 1 0; }
+  .ask .try { flex: 1 1 100%; padding: 9px 14px; }
 }
+
+/* 立場と日付は1行に並べる（開いた方は1行を使う） */
+.tools { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 10px 0 0; }
+.tools > details[open] { flex-basis: 100%; }
+.tools .timeline, .tools .profile-box { margin: 0; }
+/* 結果の語の意味：3行の対応表 */
+.side dl.fixed { display: grid; gap: 4px; margin: 0 0 14px; }
+.side dl.fixed div { display: grid; grid-template-columns: 4.5em 1fr; gap: 8px; }
+.side dl.fixed dt { font-weight: 600; color: var(--ink); }
+.side dl.fixed dd { margin: 0; }
+/* 種類ごと：最初は件数だけ。見出しを押すと開く */
+#groups > li > h3[role="button"] { cursor: pointer; }
+#groups > li > h3[role="button"]::after { content: "▸"; margin-left: 6px; color: var(--ink-3); font-size: 11px; }
+#groups > li.open > h3[role="button"]::after { content: "▾"; }
+#groups > li:not(.open) > ol, #groups > li:not(.open) > p.empty { display: none; }
+
+/* ほかの読み方と約束を1行に（狭い幅では折り返す） */
+.subbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 20px; margin-top: 8px; }
+.subbar .sub, .subbar .promises { margin: 0; }
+/* 凡例：件数つきのボタン。押すとその種類の文へ順に飛ぶ（右の「種類ごと」の代わり） */
+.legend button { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 2px 4px; border-radius: 6px; color: inherit; font: inherit; cursor: pointer; }
+.legend button:hover { background: var(--bg); }
+.legend button[disabled] { opacity: .45; cursor: default; }
+.legend .n { font-weight: 700; color: var(--ink); min-width: 1ch; }
+.side .groups-h, .side #groups { display: none; }
+
+/* 数の多い種類（15件以上）は塗らずに下線と記号だけ。凡例で選んだ種類だけ塗る */
+.doc.quiet-required:not(.focus-required) mark.m-required,
+.doc.quiet-deadline:not(.focus-deadline) mark.m-deadline,
+.doc.quiet-quantity:not(.focus-quantity) mark.m-quantity,
+.doc.quiet-prohibited:not(.focus-prohibited) mark.m-prohibited { background-image: none; }
+.quiet-note { font-size: 12.5px; color: var(--ink-2); margin: -6px 0 12px; }
+
+/* 論点の組（要項の種類）の切り替え */
+.kind-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.kind-row h2 { margin: 0; }
+.kind-pick { font-size: 12.5px; color: var(--ink-2); display: inline-flex; gap: 6px; align-items: baseline; }
+.kind-pick select { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.kind-note { font-size: 12px; color: var(--ink-3); margin: 4px 0 8px; }

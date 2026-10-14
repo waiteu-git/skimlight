@@ -23,15 +23,15 @@ const origin = process.argv.slice(2).find((a) => /^https?:\/\//.test(a))?.replac
 const noBrowser = process.argv.includes("--no-browser");
 if (!origin) { console.error("使い方: node scripts/field-check.mjs https://<公開 URL> [--no-browser]"); process.exit(2); }
 const SAMPLE = "https://lolipop.jp/deploy-now/contest/";
-const NOFETCH = "https://127.0.0.1/";
-const CSP_PAGE = "https://github.com/waiteu-git/tadashigaki";
+const NOFETCH = "http://example.com/"; // 送る前に断られる URL（https でない）。127.0.0.1 は公開側の防御（WAF）が手前で 403 にしてアプリまで届かない（10/19）
+const CSP_PAGE = "https://github.com/waiteu-git/skimlight";
 const result = { origin, at: new Date().toISOString() };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** 自動で展開しない GET（転送された実際のバイト数を数える） */
 function rawGet(url) {
   return new Promise((resolve, reject) => {
-    const req = (url.startsWith("https:") ? httpsRequest : httpRequest)(url, { headers: { "Accept-Encoding": "br, gzip", "User-Agent": "tadashigaki-field-check" } }, (res) => {
+    const req = (url.startsWith("https:") ? httpsRequest : httpRequest)(url, { headers: { "Accept-Encoding": "br, gzip", "User-Agent": "skimlight-field-check" } }, (res) => {
       let bytes = 0; const chunks = [];
       res.on("data", (c) => { bytes += c.length; chunks.push(c); });
       res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, bytes, body: Buffer.concat(chunks) }));
@@ -74,7 +74,7 @@ console.log("3b. 自分で付けた X-Forwarded-For は鍵に使われない", s
 if (process.stdin.isTTY && limited) {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   console.log("\n3c. いまこの端末は1分間の上限に達しています。50秒以内に、スマホ（Wi-Fi を切ってモバイル回線）で");
-  console.log(`    ${origin} を開き「実在の要項で試す」を押してください。`);
+  console.log(`    ${origin} を開き「デプロイナウの要項で試す」を押してください。`);
   const ans = (await rl.question("    要項が読めたら y、「続けて読みすぎです」が出たら n: ")).trim().toLowerCase();
   rl.close();
   result.rateKey.otherNetwork = ans === "y" ? "読めた" : ans === "n" ? "止まった" : ans;

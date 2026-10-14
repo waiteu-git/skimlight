@@ -3,36 +3,56 @@ import "../styles/app.css";
 import { bookmarkletHref } from "../bookmarklet/loader.ts";
 export const prerender = true;
 const SAMPLE = "https://lolipop.jp/deploy-now/contest/";
-const BM = bookmarkletHref(new URL(Astro.site ?? "http://localhost:4391").origin);
+const ORIGIN = new URL(Astro.site ?? "http://localhost:4391").origin;
+const BM = bookmarkletHref(ORIGIN);
+const DESC = "長い要項を、締切・必須・数量・禁止・食い違いに色分けして読む。判定はしません。";
 ---
 <!doctype html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>タダシガキ</title>
-    <meta name="description" content="長い要項を、締切・必須・数量・禁止・食い違いに色分けして読む。判定はしません。" />
+    <title>Skimlight</title>
+    <meta name="description" content={DESC} />
+    <link rel="canonical" href={`${ORIGIN}/`} />
+    <!-- SNS で共有した時のカード。画像は架空の見本の画面（scripts/screenshot.mjs で撮る） -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Skimlight" />
+    <meta property="og:title" content="Skimlight" />
+    <meta property="og:description" content={DESC} />
+    <meta property="og:url" content={`${ORIGIN}/`} />
+    <meta property="og:image" content={`${ORIGIN}/og.jpg`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="架空の募集要項の文に、必須・締切・数量などの色の印が付き、右に論点ごとの一覧が並んだ画面" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="color-scheme" content="light dark" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='12' width='24' height='9' rx='2' fill='%2356b4e9'/%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 19.5 C 9 16.5, 20 14, 28 11.5 L 29.5 17 C 21 19.5, 10 22, 5.5 24.5 Z' fill='%2356b4e9' opacity='.9'/%3E%3Cpath d='M7 21.5 C 13 19.5, 20 17.5, 26 15.5' stroke='%231d1d1f' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E" />
   </head>
   <body>
     <header class="top wrap">
       <div class="brand">
-        <h1>タダシガキ</h1>
+        <h1>Skimlight</h1>
         <p>長い要項を、見て分かる形に。</p>
       </div>
       <form class="ask" id="ask" autocomplete="off">
         <label for="url" class="vh">要項ページの URL</label>
         <input id="url" name="url" type="url" inputmode="url" placeholder="要項ページの URL を貼る（https://…）" required />
         <button class="btn" id="go" type="submit">読む</button>
+        <button class="btn ghost try" type="button" id="sample" data-url={SAMPLE}>デプロイナウの要項で試す</button>
       </form>
-      <p class="hint">URLで読めるのは、開いたときに文字がそのまま書かれているページです。読み込んでから文字が出るページは、ブックマークレットか貼り付けを使ってください。</p>
+      <div class="subbar">
       <div class="sub">
         <span class="sub-lead">ほかの読み方：</span>
-        <button type="button" id="sample" data-url={SAMPLE}>実在の要項で試す<span class="sample-long">（デプロイナウ）</span></button>
         <label class="filebtn">PDF を選ぶ<input type="file" id="pdf" accept="application/pdf,.pdf" /></label>
         <button type="button" id="toggle-paste" aria-expanded="false" aria-controls="paste">文章を貼り付けて読む</button>
-        <a href="#bookmarklet" id="bm-link">ページの上で直接マーカーを引く（ブックマークレット）</a>
+        <button type="button" id="sample-sch">奨学金の見本</button>
+      </div>
+      <div class="promises" role="group" aria-label="約束（押すと説明が出ます）">
+        <button type="button" aria-expanded="false" data-note="応募できるか・当てはまるかは言いません。原文の該当箇所を並べるだけで、決めるのはあなたです。">判定しません</button>
+        <button type="button" aria-expanded="false" data-note="読み込んだページや文章をサーバーに保存しません。立場の選択だけを、この端末の中に置きます。">保存しません</button>
+        <button type="button" aria-expanded="false" data-note="PDF と貼り付けた文章は、この端末の中だけで読み、どこへも送りません。URL を読む時だけ、サーバーがそのページを1回取得します。">PDF・貼り付けは送りません</button>
+      </div>
       </div>
       <div class="paste" id="paste" hidden>
         <label for="paste-text" class="vh">要項の文章</label>
@@ -44,26 +64,19 @@ const BM = bookmarkletHref(new URL(Astro.site ?? "http://localhost:4391").origin
         <p>このページはPDFにリンクしています。要項の本体がPDFのときは、PDFを保存して「PDFを選ぶ」で読んでください。PDFはこの端末の中だけで読みます。</p>
         <ul id="pdfhint-list"></ul>
       </div>
-      <div class="promises" role="group" aria-label="約束（押すと説明が出ます）">
-        <button type="button" aria-expanded="false" data-note="応募できるか・当てはまるかは言いません。原文の該当箇所を並べるだけで、決めるのはあなたです。">判定しません</button>
-        <button type="button" aria-expanded="false" data-note="読み込んだページや文章をサーバーに保存しません。立場の選択だけを、この端末の中に置きます。">保存しません</button>
-        <button type="button" aria-expanded="false" data-note="PDF と貼り付けた文章は、この端末の中だけで読み、どこへも送りません。URL を読む時だけ、サーバーがそのページを1回取得します。">PDF・貼り付けは送りません</button>
-      </div>
       <p class="promise-note" id="promise-note" role="note" hidden></p>
       <p class="sr-note vh">このページは判定しません。原文の該当箇所を並べるだけです。決めるのはあなたです。</p>
-      <ul class="legend" aria-label="色の凡例（本文の印を押すと意味が出ます）">
-        <li><span class="k k-required">必</span>必須</li>
-        <li><span class="k k-deadline">締</span>締切</li>
-        <li><span class="k k-quantity">数</span>数量</li>
-        <li><span class="k k-prohibited">禁</span>禁止</li>
-        <li><span class="k k-conflict">違</span>食い違い</li>
-        <li><b class="tg-legend">ただし</b>ただし書き</li>
-        <li class="legend-tip">印を押すと意味が出ます</li>
-      </ul>
     </header>
 
     <main class="wrap" id="main" hidden>
-      <p class="demo-note" id="demo-note" hidden>いま表示しているのは<strong>架空の見本</strong>です。一覧の文を押すと、原文のその場所へ飛びます。</p>
+      <div class="glance" id="glance" hidden>
+        <p class="next-dl" id="next-dl" hidden></p>
+        <section class="watch" id="watch" aria-labelledby="watch-h" hidden>
+          <h2 id="watch-h">見落としやすい文</h2>
+          <ol class="watch-list" id="watch-list"></ol>
+        </section>
+      </div>
+      <div class="tools">
       <details class="profile-box" id="profile-box">
         <summary>自分の立場で絞る（任意・この端末の中だけ）</summary>
         <form class="profile" id="profile" aria-label="自分の立場（端末の中だけで使います）">
@@ -71,7 +84,7 @@ const BM = bookmarkletHref(new URL(Astro.site ?? "http://localhost:4391").origin
           <label class="chip"><input type="radio" name="role" value="student" /><span>学生</span></label>
           <label class="chip"><input type="radio" name="role" value="worker" /><span>社会人</span></label>
         </fieldset>
-        <fieldset><legend>参加</legend>
+        <fieldset id="fs-party"><legend>参加</legend>
           <label class="chip"><input type="radio" name="party" value="solo" /><span>1人</span></label>
           <label class="chip"><input type="radio" name="party" value="team" /><span>チーム</span></label>
         </fieldset>
@@ -86,38 +99,77 @@ const BM = bookmarkletHref(new URL(Astro.site ?? "http://localhost:4391").origin
         <button type="reset" class="btn ghost" style="padding:3px 10px;font-size:13px">選び直す</button>
       </form>
       </details>
-      <p class="dimnote" id="dimnote" aria-live="polite"></p>
-
-      <section class="timeline" id="timeline" aria-label="日付の時間軸" hidden>
+      <details class="timeline" id="timeline" hidden>
+        <summary id="tl-sum">日付をすべて見る</summary>
         <div class="tl-bar" id="tl-bar"></div>
         <ul class="tl-list" id="tl-list"></ul>
-      </section>
+      </details>
+      </div>
+      <p class="dimnote" id="dimnote" aria-live="polite"></p>
 
       <div class="layout">
         <article class="paper" id="paper" aria-label="読み取りビュー">
           <p class="src" id="src"></p>
+          <ul class="legend" id="legend" aria-label="色の凡例（押すと、その種類の文へ順に飛びます）">
+            <li><button type="button" data-l="required"><span class="k k-required">必</span>必須<span class="n"></span></button></li>
+            <li><button type="button" data-l="deadline"><span class="k k-deadline">締</span>締切<span class="n"></span></button></li>
+            <li><button type="button" data-l="quantity"><span class="k k-quantity">数</span>数量<span class="n"></span></button></li>
+            <li><button type="button" data-l="prohibited"><span class="k k-prohibited">禁</span>禁止<span class="n"></span></button></li>
+            <li><button type="button" data-l="conflict"><span class="k k-conflict">違</span>食い違い<span class="n"></span></button></li>
+            <li><button type="button" data-l="proviso"><b class="tg-legend">ただし</b>ただし書き<span class="n"></span></button></li>
+            <li class="legend-tip">押すとその文へ飛びます</li>
+          </ul>
+          <p class="quiet-note" id="quiet-note" hidden></p>
+
           <div class="doc" id="doc"></div>
           <div class="pop" id="pop" role="note" hidden></div>
         </article>
         <aside class="side" id="side" aria-label="拾った条項の一覧">
-          <p class="fixed">判定はしません。「引用あり」は、関連する文があるという意味です。「引用なし」は、関連する文が見つからなかったという意味で、条件が無いという意味ではありません。「要確認」は、例外・食い違い・時刻の欠けがあるという意味です。</p>
-          <h2>論点ごと</h2>
+          <dl class="fixed" aria-label="結果の語の意味（判定はしません）">
+            <div><dt>引用あり</dt><dd>関連する文がある</dd></div>
+            <div><dt>引用なし</dt><dd>関連する文が見つからなかった（条件が無いという意味ではありません）</dd></div>
+            <div><dt>要確認</dt><dd>例外・食い違い・時刻の欠けがある</dd></div>
+          </dl>
+          <div class="kind-row">
+            <h2>論点ごと</h2>
+            <label class="kind-pick">要項の種類
+              <select id="kind" aria-describedby="kind-note">
+                <option value="contest">コンテスト・ハッカソン</option>
+                <option value="scholarship">奨学金</option>
+                <option value="grant">助成金・補助金</option>
+              </select>
+            </label>
+          </div>
+          <p class="kind-note" id="kind-note">本文の語から選びました。違う時は切り替えてください。</p>
           <ul class="topics" id="topics"></ul>
-          <h2>種類ごと</h2>
+          <h2 class="groups-h">種類ごと</h2>
           <ul class="groups" id="groups"></ul>
         </aside>
       </div>
+      <button type="button" class="to-side" id="to-side" hidden>一覧へ</button>
     </main>
 
     <section class="wrap why" id="why" aria-labelledby="why-h">
       <h2 id="why-h">作った理由</h2>
-      <p>締切の時刻や「ただし」で始まる一文を自分が見落としそうになったので、まず自分のために作りました。</p>
+      <p>締切の時刻や「ただし」で始まる一文を自分が見落としそうになったので、まず自分のために作りました。学業と個人事業の合間に、奨学金・補助金・コンテストの要項を何本も読んでいます。AIに要項を丸投げすれば楽ですが、答えが合っているかは、結局原文を自分の目で見ないと分かりません。Skimlightは、AIに任せきりにせず、自分の目で原文を確かめる過程を助ける道具です。</p>
+    </section>
+
+    <section class="wrap why craft" id="craft" aria-labelledby="craft-h">
+      <h2 id="craft-h">こだわったこと</h2>
+      <ul>
+        <li>原文の文はそのまま表示します。印を付けるだけで、要約も言い換えもしません。</li>
+        <li>判定しません。応募できるかどうかは言わず、決めるのは読む人です。</li>
+        <li>印は色だけに頼らず、1字の記号と下線の形でも見分けられます。</li>
+        <li>最初に読み込むのは約95KBです。マーカーはCSSだけで動かしています。PDFと貼り付けた文章は、この端末の中だけで読みます。</li>
+        <li>実在する奨学金やコンテストの要項で印の誤りを数え、誤りの型ごとにテストを足して直してきました。</li>
+      </ul>
+      <p><a href="https://github.com/waiteu-git/skimlight" rel="noopener">ソースコード（GitHub・Apache-2.0）</a></p>
     </section>
 
     <section class="wrap bm" id="bookmarklet" aria-labelledby="bm-h">
       <h2 id="bm-h">ページの上で直接マーカーを引く</h2>
       <p>下のボタンを、ブラウザのブックマークバーへドラッグして登録します。要項のページを開いた状態で押すと、そのページの上にマーカーが走ります。もう一度押すと消えます。</p>
-      <p><a class="bm-link" href={BM} draggable="true" onclick="event.preventDefault(); alert('ブックマークバーへドラッグして登録してください');">タダシガキ</a></p>
+      <p><a class="bm-link" href={BM} draggable="true" onclick="event.preventDefault(); alert('ブックマークバーへドラッグして登録してください');">Skimlight</a></p>
       <p class="note">ページの設定で外部のスクリプトが止められているときは、本文の文字だけを読み取りビューへ渡して開きます。渡す先はこのサイトの窓だけで、ほかへは送りません。読み込んでから本文が出るページも、この方法なら読めます。</p>
     </section>
 
@@ -131,7 +183,6 @@ const BM = bookmarkletHref(new URL(Astro.site ?? "http://localhost:4391").origin
 <style is:global>
   .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   h1 small { font-size: 12px; font-weight: 400; color: var(--ink-3); margin-left: 4px; }
-  .hint { font-size: 13px; color: var(--ink-2); margin: 8px 0 0; }
   .filebtn { position: relative; text-decoration: underline; cursor: pointer; }
   .filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
   .filebtn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
@@ -140,6 +191,8 @@ const BM = bookmarkletHref(new URL(Astro.site ?? "http://localhost:4391").origin
   .why { margin: 8px auto 20px; font-size: 14px; color: var(--ink-2); }
   .why h2 { font-size: 15px; color: var(--ink); margin: 0 0 6px; }
   .why p { margin: 0; max-width: 44em; }
+  .craft ul { margin: 0 0 8px; padding-left: 1.2em; max-width: 44em; }
+  .craft li { margin: 0 0 4px; }
   .bm { margin: 8px auto 24px; font-size: 14px; color: var(--ink-2); }
   .bm h2 { font-size: 15px; color: var(--ink); margin: 0 0 6px; }
   .bm p { margin: 0 0 8px; max-width: 44em; }

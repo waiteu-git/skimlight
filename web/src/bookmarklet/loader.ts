@@ -8,9 +8,9 @@ export function bookmarkletHref(origin: string): string {
   const o = JSON.stringify(origin);
   const code = `(()=>{const o=${o};const go=()=>{const w=open(o+'/#bm','_blank');if(!w){alert('読み取りビューの窓を開けませんでした（ポップアップを許可してください）');return}` +
     `const t=((document.querySelector('main,[role=main]')||document.body).innerText||'').slice(0,200000);` +
-    `addEventListener('message',function f(e){if(e.origin===o&&e.source===w&&e.data&&e.data.type==='tadashigaki/ready'){` +
-    `w.postMessage({type:'tadashigaki/text',url:location.href.split('#')[0],title:document.title,text:t},o);removeEventListener('message',f)}})};` +
-    `if(window.__tadashigakiOverlay){window.__tadashigakiOverlay.undo();return}` +
+    `addEventListener('message',function f(e){if(e.origin===o&&e.source===w&&e.data&&e.data.type==='skimlight/ready'){` +
+    `w.postMessage({type:'skimlight/text',url:location.href.split('#')[0],title:document.title,text:t},o);removeEventListener('message',f)}})};` +
+    `if(window.__skimlightOverlay){window.__skimlightOverlay.undo();return}` +
     `const s=document.createElement('script');s.referrerPolicy='no-referrer';s.src=o+'/bm.js';s.onerror=go;document.documentElement.append(s)})()`;
   return "javascript:" + encodeURIComponent(code).replace(/%20/g, " ");
 }
