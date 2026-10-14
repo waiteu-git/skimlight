@@ -1,0 +1,22 @@
+{
+ "_note": "架空の例。自分の値は .private/situation.json に置く（git の外・端末の外へ出さない）",
+ "birth_date": "2006-04-01",
+ "school": {
+  "in_japan": true,
+  "four_year": true,
+  "grade": 1,
+  "international_student": false,
+  "enrolled": true
+ },
+ "residence": {
+  "prefecture": "東京都",
+  "municipality_code": "131016"
+ },
+ "contest": {
+  "team_size": 1,
+  "work_published": false
+ },
+ "career": {
+  "it_engineer_fulltime": false
+ }
+}

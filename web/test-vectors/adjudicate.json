@@ -1,0 +1,235 @@
+{
+ "doc": "応募資格\n1. 応募時点で学部1～3年生の方\n３． 応募締切日時点で年齢２５才以下であること\n他の奨学金と併願・併給も可能です。ただし、学内選考の奨学金を除きます。\nITエンジニア職の正社員としての就業経験がないこと(ただし、アルバイトは含みません)。\n外国籍の方も応募できます。しかし、外国からの留学生の方は応募できません。\n募集受付 2026年8月25日～2026年10月18日まで\n応募資格は学部生\u001eに限ります\n",
+ "cases": [
+  {
+   "name": "quoted_in_range",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": "応募締切日時点で年齢25才以下であること",
+    "check": {
+     "field": "birth_date",
+     "op": "age_at_most",
+     "value": 25,
+     "as_of": "2026-10-18"
+    }
+   },
+   "situation": {
+    "birth_date": "2006-04-01"
+   },
+   "today": "2026-10-12",
+   "status": "引用あり",
+   "reasons": []
+  },
+  {
+   "name": "out_of_range",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": "応募締切日時点で年齢25才以下であること",
+    "check": {
+     "field": "birth_date",
+     "op": "age_at_most",
+     "value": 25,
+     "as_of": "2026-10-18"
+    }
+   },
+   "situation": {
+    "birth_date": "2000-01-01"
+   },
+   "today": "2026-10-12",
+   "status": "要確認",
+   "reasons": [
+    "OUT_OF_RANGE"
+   ]
+  },
+  {
+   "name": "birthday_on_deadline",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": "応募締切日時点で年齢25才以下であること",
+    "check": {
+     "field": "birth_date",
+     "op": "age_at_most",
+     "value": 25,
+     "as_of": "2026-10-18"
+    }
+   },
+   "situation": {
+    "birth_date": "2000-10-18"
+   },
+   "today": "2026-10-12",
+   "status": "要確認",
+   "reasons": [
+    "OUT_OF_RANGE"
+   ]
+  },
+  {
+   "name": "missing_situation",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": "応募締切日時点で年齢25才以下であること",
+    "check": {
+     "field": "birth_date",
+     "op": "age_at_most",
+     "value": 25,
+     "as_of": "2026-10-18"
+    }
+   },
+   "situation": {},
+   "today": "2026-10-12",
+   "status": "要確認",
+   "reasons": [
+    "SITUATION_MISSING"
+   ]
+  },
+  {
+   "name": "fabricated",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": "1年生は高校の成績証明書で構いません"
+   },
+   "situation": {},
+   "today": "2026-10-12",
+   "status": "要確認",
+   "reasons": [
+    "QUOTE_NOT_FOUND"
+   ]
+  },
+  {
+   "name": "absent_ok",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": null,
+    "absent_terms": [
+     "高校",
+     "代替"
+    ]
+   },
+   "situation": {},
+   "today": "2026-10-12",
+   "status": "引用なし",
+   "reasons": []
+  },
+  {
+   "name": "absent_present",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": null,
+    "absent_terms": [
+     "学内選考"
+    ]
+   },
+   "situation": {},
+   "today": "2026-10-12",
+   "status": "要確認",
+   "reasons": [
+    "TERM_PRESENT"
+   ]
+  },
+  {
+   "name": "deadline_open",
+   "requirement": {
+    "id": "R1",
+    "kind": "締切",
+    "topic": "t",
+    "source": "S1",
+    "quote": "募集受付 2026年8月25日～2026年10月18日まで",
+    "deadline": "2026-10-18"
+   },
+   "situation": {},
+   "today": "2026-10-12",
+   "status": "引用あり",
+   "reasons": []
+  },
+  {
+   "name": "deadline_passed",
+   "requirement": {
+    "id": "R1",
+    "kind": "締切",
+    "topic": "t",
+    "source": "S1",
+    "quote": "募集受付 2026年8月25日～2026年10月18日まで",
+    "deadline": "2026-10-18"
+   },
+   "situation": {},
+   "today": "2026-10-19",
+   "status": "要確認",
+   "reasons": [
+    "DEADLINE_PASSED"
+   ]
+  },
+  {
+   "name": "qualifier_outside",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": "ITエンジニア職の正社員としての就業経験がないこと",
+    "check": {
+     "field": "career.it_engineer_fulltime",
+     "op": "is_false"
+    }
+   },
+   "situation": {
+    "career": {
+     "it_engineer_fulltime": false
+    }
+   },
+   "today": "2026-10-12",
+   "status": "要確認",
+   "reasons": [
+    "QUALIFIER_OUTSIDE"
+   ]
+  },
+  {
+   "name": "in_list_type_mismatch",
+   "requirement": {
+    "id": "R1",
+    "kind": "資格",
+    "topic": "t",
+    "source": "S1",
+    "quote": "応募時点で学部1～3年生の方",
+    "check": {
+     "field": "school.grade",
+     "op": "in",
+     "value": [
+      1,
+      2,
+      3
+     ]
+    }
+   },
+   "situation": {
+    "school": {
+     "grade": "1"
+    }
+   },
+   "today": "2026-10-12",
+   "status": "要確認",
+   "reasons": [
+    "OUT_OF_RANGE"
+   ]
+  }
+ ]
+}

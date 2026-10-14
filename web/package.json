@@ -1,0 +1,23 @@
+{
+  "name": "rule-audit-web",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "node scripts/build-bookmarklet.mjs && node scripts/copy-pdf-assets.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "start": "node ./dist/server/entry.mjs",
+    "test": "node --test \"tests/**/*.test.ts\"",
+    "build:bm": "node scripts/build-bookmarklet.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "11.1.6",
+    "astro": "7.3.5",
+    "pdfjs-dist": "6.3.289"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

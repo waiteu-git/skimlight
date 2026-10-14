@@ -1,0 +1,149 @@
+---
+import "../styles/app.css";
+import { bookmarkletHref } from "../bookmarklet/loader.ts";
+export const prerender = true;
+const SAMPLE = "https://lolipop.jp/deploy-now/contest/";
+const BM = bookmarkletHref(new URL(Astro.site ?? "http://localhost:4391").origin);
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>タダシガキ</title>
+    <meta name="description" content="長い要項を、締切・必須・数量・禁止・食い違いに色分けして読む。判定はしません。" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='12' width='24' height='9' rx='2' fill='%2356b4e9'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="top wrap">
+      <div class="brand">
+        <h1>タダシガキ</h1>
+        <p>長い要項を、見て分かる形に。</p>
+      </div>
+      <form class="ask" id="ask" autocomplete="off">
+        <label for="url" class="vh">要項ページの URL</label>
+        <input id="url" name="url" type="url" inputmode="url" placeholder="要項ページの URL を貼る（https://…）" required />
+        <button class="btn" id="go" type="submit">読む</button>
+      </form>
+      <p class="hint">URLで読めるのは、開いたときに文字がそのまま書かれているページです。読み込んでから文字が出るページは、ブックマークレットか貼り付けを使ってください。</p>
+      <div class="sub">
+        <span class="sub-lead">ほかの読み方：</span>
+        <button type="button" id="sample" data-url={SAMPLE}>実在の要項で試す<span class="sample-long">（デプロイナウ）</span></button>
+        <label class="filebtn">PDF を選ぶ<input type="file" id="pdf" accept="application/pdf,.pdf" /></label>
+        <button type="button" id="toggle-paste" aria-expanded="false" aria-controls="paste">文章を貼り付けて読む</button>
+        <a href="#bookmarklet" id="bm-link">ページの上で直接マーカーを引く（ブックマークレット）</a>
+      </div>
+      <div class="paste" id="paste" hidden>
+        <label for="paste-text" class="vh">要項の文章</label>
+        <textarea id="paste-text" placeholder="要項の文章をここに貼り付けて「読む」"></textarea>
+        <button class="btn" id="paste-go" type="button">読む</button>
+      </div>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <div class="pdfhint" id="pdfhint" hidden>
+        <p>このページはPDFにリンクしています。要項の本体がPDFのときは、PDFを保存して「PDFを選ぶ」で読んでください。PDFはこの端末の中だけで読みます。</p>
+        <ul id="pdfhint-list"></ul>
+      </div>
+      <div class="promises" role="group" aria-label="約束（押すと説明が出ます）">
+        <button type="button" aria-expanded="false" data-note="応募できるか・当てはまるかは言いません。原文の該当箇所を並べるだけで、決めるのはあなたです。">判定しません</button>
+        <button type="button" aria-expanded="false" data-note="読み込んだページや文章をサーバーに保存しません。立場の選択だけを、この端末の中に置きます。">保存しません</button>
+        <button type="button" aria-expanded="false" data-note="PDF と貼り付けた文章は、この端末の中だけで読み、どこへも送りません。URL を読む時だけ、サーバーがそのページを1回取得します。">PDF・貼り付けは送りません</button>
+      </div>
+      <p class="promise-note" id="promise-note" role="note" hidden></p>
+      <p class="sr-note vh">このページは判定しません。原文の該当箇所を並べるだけです。決めるのはあなたです。</p>
+      <ul class="legend" aria-label="色の凡例（本文の印を押すと意味が出ます）">
+        <li><span class="k k-required">必</span>必須</li>
+        <li><span class="k k-deadline">締</span>締切</li>
+        <li><span class="k k-quantity">数</span>数量</li>
+        <li><span class="k k-prohibited">禁</span>禁止</li>
+        <li><span class="k k-conflict">違</span>食い違い</li>
+        <li><b class="tg-legend">ただし</b>ただし書き</li>
+        <li class="legend-tip">印を押すと意味が出ます</li>
+      </ul>
+    </header>
+
+    <main class="wrap" id="main" hidden>
+      <p class="demo-note" id="demo-note" hidden>いま表示しているのは<strong>架空の見本</strong>です。一覧の文を押すと、原文のその場所へ飛びます。</p>
+      <details class="profile-box" id="profile-box">
+        <summary>自分の立場で絞る（任意・この端末の中だけ）</summary>
+        <form class="profile" id="profile" aria-label="自分の立場（端末の中だけで使います）">
+        <fieldset><legend>立場</legend>
+          <label class="chip"><input type="radio" name="role" value="student" /><span>学生</span></label>
+          <label class="chip"><input type="radio" name="role" value="worker" /><span>社会人</span></label>
+        </fieldset>
+        <fieldset><legend>参加</legend>
+          <label class="chip"><input type="radio" name="party" value="solo" /><span>1人</span></label>
+          <label class="chip"><input type="radio" name="party" value="team" /><span>チーム</span></label>
+        </fieldset>
+        <fieldset><legend>年齢</legend>
+          <label class="chip"><input type="radio" name="age" value="adult" /><span>成人</span></label>
+          <label class="chip"><input type="radio" name="age" value="minor" /><span>未成年</span></label>
+        </fieldset>
+        <fieldset><legend>住まい</legend>
+          <label class="chip"><input type="radio" name="home" value="domestic" /><span>国内</span></label>
+          <label class="chip"><input type="radio" name="home" value="overseas" /><span>海外</span></label>
+        </fieldset>
+        <button type="reset" class="btn ghost" style="padding:3px 10px;font-size:13px">選び直す</button>
+      </form>
+      </details>
+      <p class="dimnote" id="dimnote" aria-live="polite"></p>
+
+      <section class="timeline" id="timeline" aria-label="日付の時間軸" hidden>
+        <div class="tl-bar" id="tl-bar"></div>
+        <ul class="tl-list" id="tl-list"></ul>
+      </section>
+
+      <div class="layout">
+        <article class="paper" id="paper" aria-label="読み取りビュー">
+          <p class="src" id="src"></p>
+          <div class="doc" id="doc"></div>
+          <div class="pop" id="pop" role="note" hidden></div>
+        </article>
+        <aside class="side" id="side" aria-label="拾った条項の一覧">
+          <p class="fixed">判定はしません。「引用あり」は、関連する文があるという意味です。「引用なし」は、関連する文が見つからなかったという意味で、条件が無いという意味ではありません。「要確認」は、例外・食い違い・時刻の欠けがあるという意味です。</p>
+          <h2>論点ごと</h2>
+          <ul class="topics" id="topics"></ul>
+          <h2>種類ごと</h2>
+          <ul class="groups" id="groups"></ul>
+        </aside>
+      </div>
+    </main>
+
+    <section class="wrap why" id="why" aria-labelledby="why-h">
+      <h2 id="why-h">作った理由</h2>
+      <p>締切の時刻や「ただし」で始まる一文を自分が見落としそうになったので、まず自分のために作りました。</p>
+    </section>
+
+    <section class="wrap bm" id="bookmarklet" aria-labelledby="bm-h">
+      <h2 id="bm-h">ページの上で直接マーカーを引く</h2>
+      <p>下のボタンを、ブラウザのブックマークバーへドラッグして登録します。要項のページを開いた状態で押すと、そのページの上にマーカーが走ります。もう一度押すと消えます。</p>
+      <p><a class="bm-link" href={BM} draggable="true" onclick="event.preventDefault(); alert('ブックマークバーへドラッグして登録してください');">タダシガキ</a></p>
+      <p class="note">ページの設定で外部のスクリプトが止められているときは、本文の文字だけを読み取りビューへ渡して開きます。渡す先はこのサイトの窓だけで、ほかへは送りません。読み込んでから本文が出るページも、この方法なら読めます。</p>
+    </section>
+
+    <footer class="wrap foot">
+      <p>読み込んだページは保存しません。PDF と貼り付けた文章はこの端末の中だけで読み、送りません。立場の選択はこの端末の中だけに置きます。URLを読むときは、そのページを1回だけ取得します。PDF の読み取りには pdf.js（Apache License 2.0）を使っています。</p>
+      <p><a href="/terms">利用規約</a>　<a href="/privacy">プライバシーポリシー</a>　運営：waiteu</p>
+    </footer>
+    <script src="../client/app.ts"></script>
+  </body>
+</html>
+<style is:global>
+  .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  h1 small { font-size: 12px; font-weight: 400; color: var(--ink-3); margin-left: 4px; }
+  .hint { font-size: 13px; color: var(--ink-2); margin: 8px 0 0; }
+  .filebtn { position: relative; text-decoration: underline; cursor: pointer; }
+  .filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .filebtn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .pdfhint { font-size: 13px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0 0; }
+  .pdfhint p { margin: 0 0 6px; } .pdfhint ul { margin: 0; padding-left: 1.2em; } .pdfhint a { word-break: break-all; }
+  .why { margin: 8px auto 20px; font-size: 14px; color: var(--ink-2); }
+  .why h2 { font-size: 15px; color: var(--ink); margin: 0 0 6px; }
+  .why p { margin: 0; max-width: 44em; }
+  .bm { margin: 8px auto 24px; font-size: 14px; color: var(--ink-2); }
+  .bm h2 { font-size: 15px; color: var(--ink); margin: 0 0 6px; }
+  .bm p { margin: 0 0 8px; max-width: 44em; }
+  .bm .note { font-size: 13px; color: var(--ink-3); }
+  .bm-link { display: inline-block; padding: 6px 14px; border-radius: 999px; border: 1.5px dashed var(--ink); color: var(--ink); text-decoration: none; font-weight: 700; cursor: grab;
+    background: linear-gradient(color-mix(in srgb, var(--c-deadline) 30%, transparent), color-mix(in srgb, var(--c-deadline) 30%, transparent)); }
+</style>

@@ -1,0 +1,9 @@
+# 取得した原文の控え（本文の再配布を避けるため git に入れない）
+.cache/
+# 本人の状況・実データ（端末の外へ出さない）
+.private/
+situation.json
+*.situation.json
+__pycache__/
+*.pyc
+.DS_Store

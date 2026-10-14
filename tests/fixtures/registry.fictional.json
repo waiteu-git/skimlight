@@ -1,0 +1,30 @@
+[
+ {
+  "_note": "架空の制度（テスト用）。実在の自治体・制度とは無関係",
+  "institutionName": {"canonicalName": "架空区こども応援手当", "shortName": "こども応援手当"},
+  "summary": "架空区に住む子を養育する方に手当を支給します。",
+  "target": {
+   "targetPersons": "架空区に住所があり、18歳到達後最初の3月31日までの子を養育している方",
+   "lessThanOrEqualTo": {"targetAge": 18, "targetAgeOfMonths": null},
+   "conditions": null
+  },
+  "support": {"description": "月額5,000円を支給します。", "monetarySupport": "5000", "materiallySupport": null},
+  "procedureMethod": "窓口、郵送",
+  "procedurePeriod": {"fromYMD": "2026-04-01", "toYMD": "2027-03-31"},
+  "electronicSubmission": false,
+  "localGovernmentLink": {"uri": "https://example.invalid/kodomo-teate", "title": "こども応援手当"},
+  "area": {"areaCode": "999999;架空区"},
+  "basicInformation": {"psid": "FICT-0001", "organization": "0000000000000"},
+  "useConsiderationFlag": false
+ },
+ {
+  "institutionName": {"canonicalName": "架空市乳児用品支給"},
+  "summary": "乳児用品を支給します。",
+  "target": {"targetPersons": "1歳未満の乳児がいる世帯", "lessThan": {"targetAge": 1, "targetAgeOfMonths": null}},
+  "localGovernmentLink": {"uri": "https://example.invalid/nyuji"},
+  "area": {"areaCode": "999998;架空市"},
+  "basicInformation": {"psid": "FICT-0002"},
+  "electronicSubmission": true,
+  "useConsiderationFlag": false
+ }
+]

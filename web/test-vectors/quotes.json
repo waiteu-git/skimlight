@@ -1,0 +1,207 @@
+{
+ "doc": "応募資格\n1. 応募時点で学部1～3年生の方\n３． 応募締切日時点で年齢２５才以下であること\n他の奨学金と併願・併給も可能です。ただし、学内選考の奨学金を除きます。\nITエンジニア職の正社員としての就業経験がないこと(ただし、アルバイトは含みません)。\n外国籍の方も応募できます。しかし、外国からの留学生の方は応募できません。\n募集受付 2026年8月25日～2026年10月18日まで\n応募資格は学部生\u001eに限ります\n",
+ "cases": [
+  {
+   "quote": "応募締切日時点で年齢25才以下であること",
+   "ok": true,
+   "reason": "VERIFIED",
+   "count": 1,
+   "start": 26,
+   "end": 46,
+   "sentence": "応募締切日時点で年齢２５才以下であること",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  },
+  {
+   "quote": "締切の時点で25歳以下であること",
+   "ok": false,
+   "reason": "NOT_FOUND",
+   "count": 0,
+   "start": -1,
+   "end": -1,
+   "sentence": "",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  },
+  {
+   "quote": "以下",
+   "ok": false,
+   "reason": "TOO_SHORT",
+   "count": 0,
+   "start": -1,
+   "end": -1,
+   "sentence": "",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  },
+  {
+   "quote": "",
+   "ok": false,
+   "reason": "EMPTY",
+   "count": 0,
+   "start": -1,
+   "end": -1,
+   "sentence": "",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  },
+  {
+   "quote": "他の奨学金と併願・併給も可能です。",
+   "ok": true,
+   "reason": "VERIFIED",
+   "count": 1,
+   "start": 47,
+   "end": 64,
+   "sentence": "他の奨学金と併願・併給も可能です。",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  },
+  {
+   "quote": "ITエンジニア職の正社員としての就業経験がないこと",
+   "ok": true,
+   "reason": "VERIFIED",
+   "count": 1,
+   "start": 83,
+   "end": 108,
+   "sentence": "ITエンジニア職の正社員としての就業経験がないこと(ただし、アルバイトは含みません)。",
+   "qualifiers_outside": [
+    "ません",
+    "ただし"
+   ],
+   "qualifiers_inside": [
+    "ない"
+   ],
+   "conditions_inside": []
+  },
+  {
+   "quote": "外国からの留学生の方は応募できません",
+   "ok": true,
+   "reason": "VERIFIED",
+   "count": 1,
+   "start": 144,
+   "end": 162,
+   "sentence": "しかし、外国からの留学生の方は応募できません。",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [
+    "ません",
+    "の方は"
+   ],
+   "conditions_inside": [
+    "の方は"
+   ]
+  },
+  {
+   "quote": "応募資格は学部生に限ります",
+   "ok": false,
+   "reason": "NOT_FOUND",
+   "count": 0,
+   "start": -1,
+   "end": -1,
+   "sentence": "",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  },
+  {
+   "quote": "応募時点で学部1～3年生の方",
+   "ok": true,
+   "reason": "VERIFIED",
+   "count": 1,
+   "start": 8,
+   "end": 22,
+   "sentence": "1. 応募時点で学部1～3年生の方",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  },
+  {
+   "quote": "募集受付 2026年8月25日～2026年10月18日まで",
+   "ok": true,
+   "reason": "VERIFIED",
+   "count": 1,
+   "start": 164,
+   "end": 193,
+   "sentence": "募集受付 2026年8月25日～2026年10月18日まで",
+   "qualifiers_outside": [],
+   "qualifiers_inside": [],
+   "conditions_inside": []
+  }
+ ],
+ "qualifiers": [
+  {
+   "text": "ただし、海外在住の場合は不要です",
+   "all": [
+    "不要",
+    "ただし",
+    "場合"
+   ],
+   "no_negation": [
+    "ただし",
+    "場合"
+   ]
+  },
+  {
+   "text": "応募締切日時点で年齢25才以下であること",
+   "all": [],
+   "no_negation": []
+  },
+  {
+   "text": "必ずしも必要ではありません",
+   "all": [
+    "ません"
+   ],
+   "no_negation": []
+  },
+  {
+   "text": "チームの方は代表者が提出してください",
+   "all": [
+    "の方は"
+   ],
+   "no_negation": [
+    "の方は"
+   ]
+  },
+  {
+   "text": "不可欠な書類",
+   "all": [],
+   "no_negation": []
+  }
+ ],
+ "terms": [
+  {
+   "terms": [
+    "併給",
+    "高校"
+   ],
+   "found": [
+    "併給"
+   ],
+   "sentences": [
+    "他の奨学金と併願・併給も可能です。"
+   ]
+  },
+  {
+   "terms": [
+    "学内選考"
+   ],
+   "found": [
+    "学内選考"
+   ],
+   "sentences": [
+    "ただし、学内選考の奨学金を除きます。"
+   ]
+  },
+  {
+   "terms": [
+    "存在しない語"
+   ],
+   "found": [],
+   "sentences": []
+  }
+ ]
+}
